@@ -44,16 +44,24 @@ typedef struct mz_dummy_time_t_tag
 #define MZ_TIME_T time_t
 #endif
 
+#ifndef MZ_ASSERT
 #define MZ_ASSERT(x) assert(x)
+#endif
 
 #ifdef MINIZ_NO_MALLOC
-#define MZ_MALLOC(x) NULL
-#define MZ_FREE(x) (void)x, ((void)0)
-#define MZ_REALLOC(p, x) NULL
+    #define MZ_MALLOC(x) NULL
+    #define MZ_FREE(x) (void)x, ((void)0)
+    #define MZ_REALLOC(p, x) NULL
 #else
-#define MZ_MALLOC(x) malloc(x)
-#define MZ_FREE(x) free(x)
-#define MZ_REALLOC(p, x) realloc(p, x)
+    #ifndef MZ_MALLOC
+    #define MZ_MALLOC(x) malloc(x)
+    #endif
+    #ifndef MZ_FREE
+    #define MZ_FREE(x) free(x)
+    #endif
+    #ifndef MZ_REALLOC
+    #define MZ_REALLOC(p, x) realloc(p, x)
+    #endif
 #endif
 
 #define MZ_MAX(a, b) (((a) > (b)) ? (a) : (b))
