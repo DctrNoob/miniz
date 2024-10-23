@@ -5,8 +5,11 @@
 
 #ifdef _WIN32
 #define unlink _unlink
+#else
+#include <unistd.h>
 #endif
 
+#ifndef MINIZ_NO_STDIO
 bool create_test_zip()
 {
     unlink("test.zip");
@@ -51,8 +54,35 @@ TEST_CASE("Zip writer tests")
         REQUIRE(content_view.size() == 3);
 
         free(content);
+
+        mz_zip_reader_end(&zip_archive);
+    }
+
+    SECTION("Test repeated file addition to zip")
+    {
+        mz_zip_archive zip_archive = {};
+        auto b = mz_zip_writer_init_file(&zip_archive, "test2.zip", 0);
+        REQUIRE(b);
+
+        b = mz_zip_writer_finalize_archive(&zip_archive);
+        REQUIRE(b);
+
+        b = mz_zip_writer_end(&zip_archive);
+        REQUIRE(b);
+
+        for (int i = 0; i < 50; i++)
+        {
+            const char *str = "hello world";
+            b = mz_zip_add_mem_to_archive_file_in_place(
+                std::string("test2.zip").c_str(), ("file1.txt" + std::to_string(i)).c_str(),
+                str, (mz_uint16)strlen(str),
+                NULL, 0,
+                MZ_BEST_COMPRESSION);
+            REQUIRE(b);
+        }
     }
 }
+#endif
 
 TEST_CASE("Tinfl / tdefl tests")
 {
